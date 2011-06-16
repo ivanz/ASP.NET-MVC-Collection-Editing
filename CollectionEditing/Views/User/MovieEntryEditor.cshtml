@@ -1,0 +1,17 @@
+﻿@model CollectionEditing.Models.Movie
+
+@using (Html.BeginCollectionItem("FavouriteMovies")) {
+    <li style="padding-bottom:15px">
+        <img src="@Url.Content("~/Content/images/draggable-icon.png")" style="cursor: move" alt=""/>
+
+        @Html.LabelFor(model => model.Title)
+        @Html.EditorFor(model => model.Title)
+        @Html.ValidationMessageFor(model => model.Title)
+
+        @Html.LabelFor(model => model.Rating)
+        @Html.EditorFor(model => model.Rating)
+        @Html.ValidationMessageFor(model => model.Rating)
+
+        <a href="#" onclick="$(this).parent().remove();">Delete</a>
+    </li>
+}

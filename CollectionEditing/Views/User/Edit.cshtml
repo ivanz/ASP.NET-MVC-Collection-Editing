@@ -1,0 +1,55 @@
+﻿@model CollectionEditing.Models.User
+@{ ViewBag.Title = "Edit My Account"; }
+
+<h2>Edit</h2>
+
+@*<script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>*@
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+    <fieldset>
+        <legend>My Details</legend>
+
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+    </fieldset>
+    
+    <fieldset>
+        <legend>My Favourite Movies</legend>
+
+        @if (Model.FavouriteMovies == null || Model.FavouriteMovies.Count == 0) {
+            <p>None.</p>
+        } else {
+            <ul id="movieEditor" style="list-style-type: none">
+                @foreach (Movie movie in Model.FavouriteMovies) {
+                    Html.RenderPartial("MovieEntryEditor", movie);
+                }
+            </ul>
+            <a id="addAnother" href="#">Add another</a>
+        }
+
+        <script type="text/javascript">
+            $(function () {
+                $("#movieEditor").sortable();
+                $("#addAnother").click(function () {
+                    $.get('/User/MovieEntryRow', function (template) {
+                        $("#movieEditor").append(template);
+                    });
+                });
+            });
+        </script>
+    </fieldset>
+    
+    <p>
+        <input type="submit" value="Save" />
+        <a href="/">Cancel</a>
+    </p>
+}

@@ -1,0 +1,21 @@
+﻿@model CollectionEditing.Models.User
+
+@{
+    ViewBag.Title = "My Favourite Movies";
+}
+
+<h2>@Model.Name's Favourite Movies</h2>
+
+@if (Model.FavouriteMovies == null || Model.FavouriteMovies.Count == 0) {
+    <p>None.</p>
+} else {
+    <ul>
+        @foreach (Movie movie in Model.FavouriteMovies) {
+            <li>@movie.Title - Rating: @movie.Rating</li>
+        }
+    </ul>
+}
+
+<p>@Html.ActionLink("Edit with ASP.NET MVC", "Edit", "User")</p>
+<p>@Html.ActionLink("Reset Data", "Reset", "User")</p>
+
