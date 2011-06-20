@@ -1,0 +1,68 @@
+﻿@model CollectionEditing.Models.User
+@{ ViewBag.Title = "Edit My Account With jQuery Templates"; }
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+    <fieldset>
+        <legend>My Details</legend>
+
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+    </fieldset>
+    
+    <fieldset>
+        <legend>My Favourite Movies</legend>
+
+        @if (Model.FavouriteMovies == null || Model.FavouriteMovies.Count == 0) {
+            <p>None.</p>
+        }
+        <ul id="moviesEditor" style="list-style-type: none">
+          @if (Model.FavouriteMovies != null) {
+                foreach (Movie movie in Model.FavouriteMovies) {
+                    Html.RenderPartial("MovieEntryEditor", movie);
+                }
+            }
+        </ul>
+
+        <script src="@Url.Content("~/Scripts/jQuery.tmpl.min.js")" type="text/javascript"></script>
+
+        <script type="text/x-jquery-tmpl" id="movieTemplate">
+            @Html.CollectionItemJQueryTemplate("MovieEntryEditor", new Movie())
+        </script>
+
+        <script type="text/javascript">
+            $(function () {
+                $("#moviesEditor").sortable();
+            });
+
+            var viewModel = {
+                addNew: function () {
+                    $("#moviesEditor").append($("#movieTemplate").tmpl({ index: viewModel._generateGuid() }));
+                },
+
+                _generateGuid: function () {
+                    // Source: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/105074#105074
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+            }
+        </script>
+            
+        <a id="addAnother" href="#" onclick="viewModel.addNew();">Add another</a>
+    </fieldset>
+    <p>
+        <input type="submit" value="Save" />
+        <a href="/">Cancel</a>
+    </p>
+}

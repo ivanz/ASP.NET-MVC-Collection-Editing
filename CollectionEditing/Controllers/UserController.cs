@@ -45,6 +45,21 @@ namespace CollectionEditing.Controllers
             return View(CurrentUser);
         }
 
+        public ActionResult EditJQueryTemplate()
+        {
+            return View(CurrentUser);
+        }
+
+        [HttpPost]
+        public ActionResult EditJQueryTemplate(User user)
+        {
+            if (!this.ModelState.IsValid)
+                return View(user);
+
+            CurrentUser = user;
+            return RedirectToAction("Display");
+        }
+
         public ActionResult MovieEntryRow()
         {
             return PartialView("MovieEntryEditor");

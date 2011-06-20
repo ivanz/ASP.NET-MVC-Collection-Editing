@@ -3,18 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.Web.Mvc;
-using System.Linq.Expressions;
-using System.Collections.Specialized;
+using System.Web.Mvc.Html;
 
 namespace CollectionEditing.Infrastructure
 {
     public static class CollectionEditingHtmlExtensions
     {
+        /// <summary>
+        /// Begins a collection item by inserting either a previously used .Index hidden field value for it or a new one.
+        /// </summary>
+        /// <typeparam name="TModel"></typeparam>
+        /// <param name="html"></param>
+        /// <param name="collectionName">The name of the collection property from the Model that owns this item.</param>
+        /// <returns></returns>
         public static IDisposable BeginCollectionItem<TModel>(this HtmlHelper<TModel> html, string collectionName)
         {
+            if (String.IsNullOrEmpty(collectionName))
+                throw new ArgumentException("collectionName is null or empty.", "collectionName");
+
             string collectionIndexFieldName = String.Format("{0}.Index", collectionName);
-            string itemIndex = GetCollectionItemIndex(collectionIndexFieldName);
+
+            string itemIndex = null;
+            if (html.ViewData.ContainsKey(JQueryTemplatingEnabledKey)) {
+                itemIndex = "${index}";
+            } else {
+                itemIndex = GetCollectionItemIndex(collectionIndexFieldName);
+            }
+
             string collectionItemName = String.Format("{0}[{1}]", collectionName, itemIndex);
 
             TagBuilder indexField = new TagBuilder("input");
@@ -29,6 +44,23 @@ namespace CollectionEditing.Infrastructure
             return new CollectionItemNamePrefixScope(html.ViewData.TemplateInfo, collectionItemName);
         }
 
+        private const string JQueryTemplatingEnabledKey = "__BeginCollectionItem_jQuery";
+
+        public static MvcHtmlString CollectionItemJQueryTemplate<TModel, TCollectionItem>(this HtmlHelper<TModel> html, 
+                                                                                            string partialViewName, 
+                                                                                            TCollectionItem modelDefaultValues)
+        {
+            ViewDataDictionary<TCollectionItem> viewData = new ViewDataDictionary<TCollectionItem>(modelDefaultValues);
+            viewData.Add(JQueryTemplatingEnabledKey, true);
+            return html.Partial(partialViewName, modelDefaultValues, viewData);
+        }
+
+        /// <summary>
+        /// Tries to reuse old .Index values from the HttpRequest in order to keep the ModelState consistent
+        /// across requests. If none are left returns a new one.
+        /// </summary>
+        /// <param name="collectionIndexFieldName"></param>
+        /// <returns>a GUID string</returns>
         private static string GetCollectionItemIndex(string collectionIndexFieldName)
         {
             Queue<string> previousIndices = (Queue<string>) HttpContext.Current.Items[collectionIndexFieldName];
