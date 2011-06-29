@@ -63,7 +63,8 @@ textarea
     background-color: #ffeeee;
 }
 
-.validation-summary-errors
+.validation-summary-errors,
+.error
 {
     font-weight: bold;
     color: #ff0000;

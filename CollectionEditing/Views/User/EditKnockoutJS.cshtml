@@ -1,0 +1,116 @@
+﻿@model CollectionEditing.Models.User
+@{ ViewBag.Title = "Edit My Account With Knockout JS"; }
+
+<script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/jQuery.tmpl.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/knockout-1.2.1.debug.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/knockout.jQueryUI-sortable.js")" type="text/javascript"></script>
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm("EditKnockoutJS", "User", FormMethod.Post, new { id = "profileEditorForm" })) {
+    @Html.ValidationSummary(false)
+    <fieldset>
+        <legend>My Details</legend>
+
+        <input name="userId" type="hidden" class="required" data-bind="value: Id"/>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" class="required" data-bind="value: Name" />
+    </fieldset>
+    
+    <fieldset>
+        <legend>My Favourite Movies</legend>
+
+        <ul id="moviesEditor" style="list-style-type: none"
+            data-bind="template: { name: 'moviesTemplate', data: FavouriteMovies }, 
+                        sortableList: viewModel.FavouriteMovies" >
+        </ul>
+        <p>You have <span data-bind="text: FavouriteMovies().length"></span> favourite movies.</p>
+
+        <script id="moviesTemplate" type="text/x-jquery-template">
+            {{each(i, movie) $data}}
+                <li data-bind="sortableItem: movie">
+                    <div data-bind="template: { name: 'movieTemplate', data: movie }"></div>
+                </li>
+            {{/each}}
+        </script>
+
+        <script id="movieTemplate" type="text/x-jquery-template">
+            <img src="@Url.Content("~/Content/images/draggable-icon.png")" style="cursor: move" alt=""/>
+
+            <label>Title:</label>
+            <input type="text" data-bind="value: Title, uniqueName: true" class="required"/>
+
+            <label>Rating:</label>
+            <input type="text" data-bind="value: Rating, uniqueName: true" class="required"/>
+
+            <a href="#" data-bind="click: function() { viewModel.removeMovie(this); }">Delete</a>
+        </script>
+    
+        <button data-bind="click: addMovie, enable: FavouriteMovies().length < maxMovies">Add another</button>
+    </fieldset>
+    
+    <p>
+        <input type="submit" value="Save"/>
+        <a href="/">Cancel</a>
+    </p>
+    
+    <p data-bind="visible: saveFailed" class="error">A problem occurred saving the data.</p>
+}
+
+<script type="text/javascript">
+    $(function () {
+        ko.applyBindings(viewModel);
+
+        $("#profileEditorForm").validate({
+            submitHandler: function(form) {
+                if(viewModel.save())
+                    window.location.href = "/";
+
+                return false;
+            }
+        });
+    });
+
+    var viewModel = {
+        Id: ko.observable(@Model.Id),
+        Name: ko.observable("@Model.Name"),
+        FavouriteMovies: ko.observableArray(@Html.Json(@Model.FavouriteMovies) || []),
+
+        maxMovies: 10,
+                
+        addMovie: function() {
+            viewModel.FavouriteMovies.push(@Html.Json(new Movie()));
+        },
+
+        removeMovie: function(movie) {
+            ko.utils.arrayRemoveItem(viewModel.FavouriteMovies, movie);
+        },
+
+        saveFailed: ko.observable(false),
+
+        // Returns true if successful
+        save: function()
+        {
+            var saveSuccess = false;
+            viewModel.saveFailed(false);
+
+            // Executed synchronously for simplicity
+            jQuery.ajax({
+                type: "POST",
+                url: "@Url.Action("EditKnockoutJS", "User")",
+                data: ko.toJSON(viewModel),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(returnedData) {
+                    saveSuccess = returnedData.Success || false;
+                    viewModel.saveFailed(!saveSuccess);
+                },
+                async: false
+            });
+
+            return saveSuccess;
+        }
+    };
+</script>

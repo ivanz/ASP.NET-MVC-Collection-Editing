@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using CollectionEditing.Models;
+using CollectionEditing.Infrastructure;
 
 namespace CollectionEditing.Controllers
 {
@@ -48,6 +49,26 @@ namespace CollectionEditing.Controllers
         public ActionResult EditJQueryTemplate()
         {
             return View(CurrentUser);
+        }
+
+        public ActionResult EditKnockoutJS()
+        {
+            return View(CurrentUser);
+        }
+
+        [HttpPost]
+        public ActionResult EditKnockoutJS(User user)
+        {
+            FormResponseData responseData = new FormResponseData() {
+                Success = false
+            };
+
+            if (this.ModelState.IsValid) {
+                CurrentUser = user;
+                responseData.Success = true;
+            }
+
+            return Json(responseData);
         }
 
         [HttpPost]
